@@ -11,6 +11,8 @@
 
 # Maven
 target/
+log.txt
+*.jnilib
 
 # TestNG
 test-output/

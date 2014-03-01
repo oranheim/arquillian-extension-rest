@@ -22,11 +22,16 @@ import org.jboss.arquillian.quickstart.jersey.model.Stock;
 import org.jboss.arquillian.quickstart.jersey.service.StockService;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.DependencyResolvers;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenDependencyResolver;
+//import org.jboss.shrinkwrap.resolver.api.DependencyResolvers;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+//import org.jboss.shrinkwrap.resolver.api.maven.MavenDependencyResolver;
+import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * An utility class that creates the test deployments.
@@ -35,20 +40,30 @@ import java.io.File;
  */
 final class Deployments {
 
+    public static final Collection<JavaArchive> resolveDependencies() {
+        try {
+            PomEquippedResolveStage resolver = Maven.configureResolverViaPlugin();
+            return Arrays.asList(resolver.importCompileAndRuntimeDependencies().resolve().withTransitivity().as(JavaArchive.class));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Creates test deployment.
      *
      * @return the test deployment
      */
     public static Archive createDeployment() {
-        File[] libs = loadLibraries();
+        //File[] libs = loadLibraries();
 
         return ShrinkWrap.create(WebArchive.class)
                 .addClasses(StockApplication.class, Stock.class, StockService.class, StockServiceResource.class)
                 .addAsWebInfResource("WEB-INF/web.xml")
                 .addAsWebResource("restclient.jsp")
                 .addAsWebResource("js/jquery-1.8.2.min.js", "js/jquery-1.8.2.min.js")
-                .addAsLibraries(libs);
+                .addAsLibraries(resolveDependencies());
     }
 
     /**
@@ -56,15 +71,15 @@ final class Deployments {
      *
      * @return the loaded dependencies
      */
-    private static File[] loadLibraries() {
-        return DependencyResolvers.use(MavenDependencyResolver.class)
-                .loadMetadataFromPom("pom.xml")
-                .artifacts("org.easytesting:fest-assert")
-                .artifacts("com.sun.jersey:jersey-json")
-                .artifacts("com.sun.jersey:jersey-client")
-                .artifacts("com.sun.jersey:jersey-server")
-                .artifacts("com.sun.jersey:jersey-servlet")
-                .exclusion("javax.servlet:*")
-                .resolveAsFiles();
-    }
+//    private static File[] loadLibraries() {
+//        return DependencyResolvers.use(MavenDependencyResolver.class)
+//                .loadMetadataFromPom("pom.xml")
+//                .artifacts("org.easytesting:fest-assert")
+//                .artifacts("com.sun.jersey:jersey-json")
+//                .artifacts("com.sun.jersey:jersey-client")
+//                .artifacts("com.sun.jersey:jersey-server")
+//                .artifacts("com.sun.jersey:jersey-servlet")
+//                .exclusion("javax.servlet:*")
+//                .resolveAsFiles();
+//    }
 }
